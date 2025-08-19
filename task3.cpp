@@ -46,9 +46,33 @@ void search(){
 void update(){
     cout<<"hiiii";
 }
-void deletedata(){
-    cout<<"delete";
+void deletedata() {
+    read(); 
+    string deleteID;
+    cout << "Enter the Sale ID to be deleted: " << endl;
+    cin >> deleteID;
+
+    ifstream inFile("sales.csv");
+    ofstream tempFile("temp.csv");
+
+    if (!inFile || !tempFile) {
+        cout << "Error opening files" << endl;
+        return;
+    }
+
+   
+
+    if (found) {
+        remove("sales.csv");
+        rename("temp.csv", "sales.csv");
+        cout << "Sale ID " << deleteID << " deleted successfully" << endl;
+    } else {
+        remove("temp.csv");
+        cout << "Sale ID not found" <<endl;
+    }
+    read();
 }
+
 
 void sort(){
     cout<<"hii";
@@ -93,7 +117,7 @@ void create() {
 
 void crud(){
        cout << "Enter the choice for CRUD to be performed" << endl;
-       cout << "1. Create\n2. Read\n3. Update\n4. Sort\n5. Search" << endl;
+       cout << "1. Create\n2. Read\n3. Update\n4. Deletedata\n5. Sort\n6. Search" << endl;
        int choice;
        cin >> choice;
        switch(choice){
@@ -121,6 +145,7 @@ void crud(){
         search();
         break;
 
+
         default:
         cout << "Invalid so please enter a number between 1 and 5" << endl;
        }
@@ -128,6 +153,5 @@ void crud(){
 
 
 int main(){
-    cout << "hi";
     crud();
 }
