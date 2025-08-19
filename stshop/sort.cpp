@@ -27,7 +27,7 @@ int parseDate(const std::string &date) {
 void sortData() {
     std::ifstream inFile("sales.csv");
     if (!inFile.is_open()) {
-        std::cout << "Error opening sales.csv file." << std::endl;
+        std::cout << "Error opening sales.csv file" << std::endl;
         return;
     }
 
