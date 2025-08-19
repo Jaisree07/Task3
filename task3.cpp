@@ -16,21 +16,16 @@ void read();
 float calculateSubtotal(int quantity, float unitPrice) {
     return quantity * unitPrice;
 }
-
-
-
 void report() {
-    ifstream file("sales.csv");
+    ifstream file("temp.csv");
     if (!file.is_open()) {
-        cout << "Error opening sales.csv" << endl;
+        cout << "Error opening temp.csv" << endl;
         return;
     }
 
-    // Map to group records by date
     map<string, vector<vector<string>>> salesData;
     string line;
 
-    // Read data and group by date
     while (getline(file, line)) {
         if (line.empty()) continue;
         stringstream ss(line);
@@ -99,6 +94,86 @@ void report() {
 }
 
 
+// void report() {
+//     ifstream file("sales.csv");
+//     if (!file.is_open()) {
+//         cout << "Error opening sales.csv" << endl;
+//         return;
+//     }
+
+//     // Map to group records by date
+//     map<string, vector<vector<string>>> salesData;
+//     string line;
+
+//     // Read data and group by date
+//     while (getline(file, line)) {
+//         if (line.empty()) continue;
+//         stringstream ss(line);
+//         string saleID, date, itemName, quantityStr, unitPriceStr;
+
+//         getline(ss, saleID, ',');
+//         getline(ss, date, ',');
+//         getline(ss, itemName, ',');
+//         getline(ss, quantityStr, ',');
+//         getline(ss, unitPriceStr, ',');
+
+//         vector<string> record = {saleID, itemName, quantityStr, unitPriceStr};
+//         salesData[date].push_back(record);
+//     }
+//     file.close();
+
+//     ofstream reportFile("report.txt");
+//     if (!reportFile.is_open()) {
+//         cout << "Error creating report.txt" << endl;
+//         return;
+//     }
+
+//     time_t now = time(0);
+//     char* dt = ctime(&now);
+//     reportFile << "Report.txt\n\n";
+//     reportFile << "c: " << dt << endl;
+//     reportFile << "Sales Report : Stationary Items Sold\n";
+//     reportFile << "---------------------------------------------------------------------------------------------------\n";
+//     reportFile << left << setw(15) << "Date" << setw(12) << "SaleID" << setw(15) << "ItemName"
+//                << setw(12) << "Quantity" << setw(10) << "Price" << setw(12) << "SalesAmount" << "\n";
+//     reportFile << "---------------------------------------------------------------------------------------------------\n";
+
+//     float grandTotal = 0;
+
+//     for (auto& entry : salesData) {
+//         string date = entry.first;
+//         float subtotal = 0;
+
+//         for (auto& record : entry.second) {
+//             string saleID = record[0];
+//             string itemName = record[1];
+//             int quantity = stoi(record[2]);
+//             float price = stof(record[3]);
+//             float amount = quantity * price;
+//             subtotal += amount;
+
+//             reportFile << left << setw(15) << date
+//                        << setw(12) << saleID
+//                        << setw(15) << itemName
+//                        << setw(12) << quantity
+//                        << setw(10) << price
+//                        << setw(12) << amount << "\n";
+//         }
+
+//         reportFile << "---------------------------------------------------------------------------------------------------\n";
+//         reportFile << "Subtotal for " << date << " is :" << subtotal << "\n";
+//         reportFile << "---------------------------------------------------------------------------------------------------\n";
+//         grandTotal += subtotal;
+//     }
+
+//     reportFile << "Grand Total:" << grandTotal << "\n";
+//     reportFile << "---------------------------------------------------------------------------------------------------\n";
+
+//     reportFile.close();
+//     cout << "Report generated successfully in report.txt\n";
+//}
+
+
 int generateRandomSaleID() {
     int min = 0, max = 9999;
     return min + rand() % (max - min + 1);
@@ -149,6 +224,61 @@ void sort() {
     read();
     cout << "Data sorted by date and saved to temp.csv successfully." << endl;
 }
+
+int parseDate(const std::string &date) {
+    int d, m, y;
+    char sep;
+    std::stringstream ss(date);
+    ss >> d >> sep >> m >> sep >> y;
+    return y * 10000 + m * 100 + d;
+}
+
+void sort() {
+    std::ifstream inFile("sales.csv");
+    if (!inFile.is_open()) {
+        std::cout << "Error opening sales.csv file." << std::endl;
+        return;
+    }
+
+    std::map<int, std::string> db;
+    std::string line;
+
+    while (std::getline(inFile, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string saleIDStr, rest;
+        std::getline(ss, saleIDStr, ',');
+        std::getline(ss, rest); // rest: date,itemName,qty,price
+        int saleID = std::stoi(saleIDStr);
+        db[saleID] = rest;
+    }
+    inFile.close();
+
+    std::vector<std::pair<int, std::string>> records(db.begin(), db.end());
+
+    std::sort(records.begin(), records.end(),
+              [&](auto &a, auto &b) {
+                  std::stringstream ssA(a.second), ssB(b.second);
+                  std::string dateA, dateB;
+                  std::getline(ssA, dateA, ',');
+                  std::getline(ssB, dateB, ',');
+                  return parseDate(dateA) < parseDate(dateB);
+              });
+
+    std::ofstream temp("temp.csv", std::ios::trunc);
+    if (!temp.is_open()) {
+        std::cout << "Error creating temp.csv file." << std::endl;
+        return;
+    }
+
+    for (auto &entry : records) {
+        temp << entry.first << "," << entry.second << "\n";
+    }
+    temp.close();
+
+    std::cout << "Data sorted correctly by date and saved into temp.csv\n";
+}
+
 
 
 void read() {
@@ -409,6 +539,8 @@ void create() {
 
 void crud(){
        cout << "Enter the choice for CRUD to be performed" << endl;
+      
+       while(true){
        cout << "1. Create\n2. Read\n3. Update\n4. Deletedata\n5. Sort\n6. Search\n7.Report" << endl;
        int choice;
        cin >> choice;
@@ -440,11 +572,15 @@ void crud(){
         case 7:
         report();
         break;
-
+        
+        case 8:
+        cout << "Exit" << endl;
+        exit(0);
 
         default:
-        cout << "Invalid so please enter a number between 1 and 7" << endl;
+        cout << "Invalid so please enter a number between 1 and 8" << endl;
        }
+}
 }
 
 
