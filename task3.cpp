@@ -1,12 +1,10 @@
 #include<iostream>
 #include<fstream>
-using namespace std;
-
+#include<sstream>
 #include <iostream>
 #include <fstream>
 #include <cstdlib>  
-#include <ctime>    
-
+#include <ctime>   
 using namespace std;
 
 int generateRandomSaleID() {
@@ -14,8 +12,32 @@ int generateRandomSaleID() {
     return min + rand() % (max - min + 1);
 }
 
-void read(){
-    cout<<"hi";
+void read() {
+    ifstream file("sales.csv");
+    if (!file.is_open()) {
+        cout << "Error opening sales.csv file" << endl;
+        return;
+    }
+    string line;
+    cout << "Sales Records" << endl;
+    cout << "SaleID\t\tDate\t\tItem Name\tQuantity\tUnit Price\n";
+
+    while (getline(file, line)) {
+        if (line.empty()) 
+        continue;
+        stringstream ss(line);
+        string saleID, date, itemName, quantity, unitPrice;
+        getline(ss, saleID, ',');
+        getline(ss, date, ',');
+        getline(ss, itemName, ',');
+        getline(ss, quantity, ',');
+        getline(ss, unitPrice, ',');
+
+        cout << saleID << "\t\t" << date << "\t" << itemName << "\t\t"
+             << quantity << "\t\t" << unitPrice << endl;
+    }
+
+    file.close();
 }
 
 void search(){
@@ -39,7 +61,7 @@ void create() {
         seeded = true;
     }
 
-    string UnitPricedate, itemName;
+    string UnitPricedate, itemName, date;
     int quantity;
     float unitPrice;
     cout << "Enter UnitPriceDate (DD-MM-YYYY): " << endl;
