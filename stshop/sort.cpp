@@ -11,6 +11,8 @@
 #include <iomanip> 
 #include "main.h"
 using namespace std;
+
+
 float calculateSubtotal(int quantity, float unitPrice) {
     return quantity * unitPrice;
 }
@@ -63,82 +65,92 @@ void sortData() {
         outFile << row[0] << "," << row[1] << "," << row[2] << "," << row[3] << "," << row[4] << "\n";
     }
 
-    std::cout << "Data sorted by date and saved to temp.csv successfully." << std::endl;
+    std::cout << "Data sorted by date and saved to temp.csv successfully" << std::endl;
 }
 
 
 void report() {
     ifstream file("temp.csv");
-    if (!file.is_open()) {
+    if (!file) {
         cout << "Error opening temp.csv" << endl;
         return;
     }
 
-    map<string, vector<vector<string>>> salesData;
+    vector<vector<string>> records;
     string line;
 
     while (getline(file, line)) {
         if (line.empty()) continue;
         stringstream ss(line);
-        string saleID, date, itemName, quantityStr, unitPriceStr;
+        vector<string> row;
+        string field;
 
-        getline(ss, saleID, ',');
-        getline(ss, date, ',');
-        getline(ss, itemName, ',');
-        getline(ss, quantityStr, ',');
-        getline(ss, unitPriceStr, ',');
-
-        vector<string> record = {saleID, itemName, quantityStr, unitPriceStr};
-        salesData[date].push_back(record);
+        while (getline(ss, field, ',')) row.push_back(field);
+        if (row.size() == 5) records.push_back(row);
     }
     file.close();
 
+    sort(records.begin(), records.end(), [](const auto& a, const auto& b) {
+        return parseDate(a[1]) < parseDate(b[1]);
+    });
+
     ofstream reportFile("report.txt");
-    if (!reportFile.is_open()) {
+    if (!reportFile) {
         cout << "Error creating report.txt" << endl;
         return;
     }
 
     time_t now = time(0);
-    char* dt = ctime(&now);
     reportFile << "Report.txt\n\n";
-    reportFile << "c: " << dt << endl;
-    reportFile << "Sales Report : Stationary Items Sold\n";
-    reportFile << "---------------------------------------------------------------------------------------------------\n";
+    reportFile << "Date: " << ctime(&now) << endl;
+    reportFile << "Sales Report : Stationary Items Sold" << endl;
+    reportFile << string(100, '-') << "\n";
     reportFile << left << setw(15) << "Date" << setw(12) << "SaleID" << setw(15) << "ItemName"
                << setw(12) << "Quantity" << setw(10) << "Price" << setw(12) << "SalesAmount" << "\n";
-    reportFile << "---------------------------------------------------------------------------------------------------\n";
+    reportFile << string(100, '-') << "\n";
 
-    float grandTotal = 0;
+    float grandTotal = 0.0f;
+    string currentDate = "";
+    float subtotal = 0.0f;
 
-    for (auto& entry : salesData) {
-        string date = entry.first;
-        float subtotal = 0;
+    for (const auto& record : records) {
+        string saleID = record[0];
+        string date = record[1];
+        string itemName = record[2];
+        int quantity = stoi(record[3]);
+        float price = stof(record[4]);
+        float amount = quantity * price;
 
-        for (auto& record : entry.second) {
-            string saleID = record[0];
-            string itemName = record[1];
-            int quantity = stoi(record[2]);
-            float price = stof(record[3]);
-            float amount = quantity * price;
-            subtotal += amount;
-
-            reportFile << left << setw(15) << date
-                       << setw(12) << saleID
-                       << setw(15) << itemName
-                       << setw(12) << quantity
-                       << setw(10) << price
-                       << setw(12) << amount << "\n";
+        if (date != currentDate && !currentDate.empty()) {
+            reportFile << string(100, '-') << "\n";
+            reportFile << right << setw(89) << "Subtotal for " + currentDate + " is :" 
+                       << fixed << setprecision(2) << setw(10) << subtotal << "\n";
+            reportFile << string(100, '-') << "\n";
+            subtotal = 0;
         }
 
-        reportFile << "---------------------------------------------------------------------------------------------------\n";
-        reportFile << "Subtotal for " << date << " is :" << subtotal << "\n";
-        reportFile << "---------------------------------------------------------------------------------------------------\n";
-        grandTotal += subtotal;
+        currentDate = date;
+        subtotal += amount;
+        grandTotal += amount;
+
+        reportFile << left << setw(15) << date
+                   << setw(12) << saleID
+                   << setw(15) << itemName
+                   << setw(12) << quantity
+                   << setw(10) << fixed << setprecision(2) << price
+                   << setw(12) << fixed << setprecision(2) << amount << "\n";
     }
 
-    reportFile << "Grand Total:" << grandTotal << "\n";
-    reportFile << "---------------------------------------------------------------------------------------------------\n";
+    if (!records.empty()) {
+        reportFile << string(100, '-') << "\n";
+        reportFile << right << setw(89) << "Subtotal for " + currentDate + " is :" 
+                   << fixed << setprecision(2) << setw(10) << subtotal << "\n";
+        reportFile << string(100, '-') << "\n";
+    }
+
+    reportFile << right << setw(89) << "Grand Total:" 
+               << fixed << setprecision(2) << setw(10) << grandTotal << "\n";
+    reportFile << string(100, '-') << "\n";
 
     reportFile.close();
     cout << "Report generated successfully in report.txt\n";
