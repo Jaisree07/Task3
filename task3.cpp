@@ -60,7 +60,26 @@ void deletedata() {
         return;
     }
 
-   
+    string line;
+    bool found = false;
+
+    while (getline(inFile, line)) {
+        if (line.empty()) continue;
+
+        stringstream ss(line);
+        string saleID;
+        getline(ss, saleID, ',');
+
+        if (saleID == deleteID) {
+            found = true;
+            continue;  
+        }
+
+        tempFile << line << endl;  
+    }
+
+    inFile.close();
+    tempFile.close();
 
     if (found) {
         remove("sales.csv");
