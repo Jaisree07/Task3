@@ -276,7 +276,7 @@ void crud(){
        cout << "Enter the choice for CRUD to be performed" << endl;
       
        while(true){
-       cout << "1. Create\n2. Read\n3. Update\n4. Deletedata\n5. Sort\n6. Search\n7.Report" << endl;
+       cout << "1. Create\n2. Read\n3. Update\n4. Delete\n5. Sort\n6. Search\n7.Report" << endl;
        int choice;
        cin >> choice;
        switch(choice){
