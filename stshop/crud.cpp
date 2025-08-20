@@ -11,9 +11,19 @@
 #include <iomanip> 
 #include "main.h"
 using namespace std;
-int generateRandomSaleID() {
-    int min = 0, max = 9999;
-    return min + rand() % (max - min + 1);
+int getNextSaleID() {
+    ifstream file("sales.csv");
+    string line;
+    int lastID = 0;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string idStr;
+        getline(ss, idStr, ',');
+        lastID = stoi(idStr);
+    }
+
+    return lastID + 1;
 }
 
 void read() {
